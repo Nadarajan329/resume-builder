@@ -35,11 +35,11 @@ jobs:
       - name: Build Web Application
         run: npm run build
 
-      - name: Capacitor Sync
-        run: npx cap sync android
-
       - name: Grant Execute Permission to Gradle Wrapper
         run: chmod +x android/gradlew
+
+      - name: Capacitor Sync
+        run: npx cap sync android --verbose
 
       - name: Compile Debug APK
         run: |
