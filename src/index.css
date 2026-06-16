@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-slate-100 font-sans antialiased;
+  }
+}
+
+/* Page preview container */
+.resume-page-shadow {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom styles for page breaks on-screen */
+.page-break-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed rgba(220, 38, 38, 0.4); /* soft red dashed line */
+  pointer-events: none;
+  z-index: 10;
+}
+
+.page-break-indicator::after {
+  content: 'PAGE BREAK';
+  position: absolute;
+  right: 1rem;
+  top: -0.75rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  border: 1px solid #fca5a5;
+  letter-spacing: 0.05em;
+}
+
+/* Custom Scrollbar for sleek UI */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Print CSS */
+@media print {
+  /* Hide the UI controls, buttons, sidebars */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 8.5in !important;
+    height: auto !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force background colors and colors to render in print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Reset layout for print */
+  .print-wrapper {
+    display: block !important;
+    position: static !important;
+    width: 8.5in !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .resume-preview-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    width: 8.5in !important;
+  }
+
+  .resume-page {
+    width: 8.5in !important;
+    min-height: 11in !important;
+    padding: 0.75in !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    position: relative;
+    page-break-after: always;
+  }
+
+  /* Ensure page breaks don't cut in the middle of a paragraph/bullet */
+  .resume-section-item,
+  .resume-section-header,
+  .resume-contact-row {
+    page-break-inside: avoid;
+  }
+
+  .page-break-indicator {
+    display: none !important;
+  }
+
+  @page {
+    size: letter;
+    margin: 0;
+  }
+}
