@@ -16,6 +16,23 @@ import {
   ShadingType
 } from 'docx';
 import html2pdf from 'html2pdf.js';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
+// Helper to convert Blob to Base64 for Capacitor saving
+const blobToBase64 = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result.toString().split(',')[1];
+      resolve(base64String);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
 
 // Sample Emma Larsen data matching the schema
 const emmaLarsenData = {
@@ -775,19 +792,41 @@ ${resumeText}`
   };
 
   // PDF Export via html2pdf
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     const element = previewRef.current;
     if (!element) return;
 
+    const filename = `${resumeData.name.replace(/\s+/g, '_')}_resume.pdf`;
     const opt = {
       margin: 0,
-      filename: `${resumeData.name.replace(/\s+/g, '_')}_resume.pdf`,
+      filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { format: 'letter', unit: 'in', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(element).save();
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
+        const base64Data = await blobToBase64(pdfBlob);
+        
+        const result = await Filesystem.writeFile({
+          path: filename,
+          data: base64Data,
+          directory: Directory.Cache
+        });
+
+        await Share.share({
+          title: 'Save PDF Resume',
+          url: result.uri
+        });
+      } catch (error) {
+        console.error('Error generating or sharing PDF on native:', error);
+        alert('Failed to generate or share PDF: ' + error.message);
+      }
+    } else {
+      html2pdf().set(opt).from(element).save();
+    }
   };
 
   // Word Document Export via docx
@@ -1177,13 +1216,34 @@ ${resumeText}`
       }]
     });
 
+    const filename = `${resumeData.name.replace(/\s+/g, '_')}_resume.docx`;
     const blob = await Packer.toBlob(doc);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${resumeData.name.replace(/\s+/g, '_')}_resume.docx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const base64Data = await blobToBase64(blob);
+        const result = await Filesystem.writeFile({
+          path: filename,
+          data: base64Data,
+          directory: Directory.Cache
+        });
+
+        await Share.share({
+          title: 'Save Word Resume',
+          url: result.uri
+        });
+      } catch (error) {
+        console.error('Error generating or sharing Word doc on native:', error);
+        alert('Failed to generate or share Word document: ' + error.message);
+      }
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   };
 
   // Font/Style selectors mapping based on chosen category and variant
